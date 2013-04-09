@@ -22,6 +22,10 @@ Create large numbers of posts on a single screen in bulk. Features include:
  - Checks Capabilities and Nonces for security
  - Filters for adding and saving extra fields
 
+== Screenshots ==
+
+1. The main screen
+
 == Installation ==
 
 1. Upload to the `/wp-content/plugins/` directory

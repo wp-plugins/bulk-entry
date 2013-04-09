@@ -11,4 +11,4 @@ A WordPress plugin for fast entry of post types in large quantities. Features in
  - Checks Capabilities and Nonces for security
  - Filters for adding and saving extra fields
 
-![Bulk Entry Screenshot](https://raw.github.com/Tarendai/Bulk-Entry/master/screenshot.png)
+![Bulk Entry Screenshot](https://raw.github.com/Tarendai/Bulk-Entry/master/screenshot-1.png)
