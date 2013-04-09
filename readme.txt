@@ -25,8 +25,15 @@ Create large numbers of posts on a single screen in bulk. Features include:
 == Screenshots ==
 
 1. The main screen
+2. Custom Post types
 
 == Installation ==
 
 1. Upload to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
+
+== Changelog ==
+
+April 9, 2013 - Version 1.1
+
+* Initial release
