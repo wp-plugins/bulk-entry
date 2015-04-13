@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: Bulk Entry
-Plugin URI: http://interconnectit.com
+Plugin URI: http://tomjn.com
 Description: A tool for the bulk entry of posts, pages, etc
-Version: 1.1
+Version: 1.2
 Author: Tom J Nowell
 Author Email: contact@tomjn.com
 License:
@@ -42,9 +42,9 @@ class BulkEntry {
 	 */
 	function __construct() {
 		//Hook up to the init action
-		add_action( 'init', array( &$this, 'init_bulk_entry' ) );
-		add_action( 'wp_ajax_bulk_entry_new_card', array( &$this, 'wp_ajax_bulk_entry_new_card' ) );
-		add_action( 'wp_ajax_bulk_entry_submit_post', array( &$this, 'wp_ajax_bulk_entry_submit_post' ) );
+		add_action( 'init', array( $this, 'init_bulk_entry' ) );
+		add_action( 'wp_ajax_bulk_entry_new_card', array( $this, 'wp_ajax_bulk_entry_new_card' ) );
+		add_action( 'wp_ajax_bulk_entry_submit_post', array( $this, 'wp_ajax_bulk_entry_submit_post' ) );
 		add_action( 'after_wp_tiny_mce', array( $this, 'steal_away_mcesettings' ) );
 	}
 
@@ -64,25 +64,11 @@ class BulkEntry {
 		// Load JavaScript and stylesheets
 		$this->register_scripts_and_styles();
 
-
-		if ( is_admin() ) {
-			//this will run when in the WordPress admin
-		} else {
-			//this will run when on the frontend
-		}
-
-		/*
-		 * TODO: Define custom functionality for your plugin here
-		 *
-		 * For more information:
-		 * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-		 */
 		add_action( 'admin_menu', array( $this, 'action_callback_admin_menu' ) );
 
 	}
 
 	function action_callback_admin_menu() {
-		// TODO define your action method here
 		add_management_page( 'Bulk Entry', 'Bulk Entry', 'edit_posts', self::SLUG, array( $this, 'admin_menu_page' ) );
 	}
 
@@ -106,10 +92,10 @@ class BulkEntry {
 			die();
 		}
 
-		$type = $_POST['bulk_entry_posttype'];
-		$status = $_POST['bulk_entry_poststatus'];
-		$content = $_POST['bulk_entry_postcontent'];
-		$title = $_POST['bulk_entry_posttitle'];
+		$type = sanitize_title( $_POST['bulk_entry_posttype'] );
+		$status = sanitize_title( $_POST['bulk_entry_poststatus'] );
+		$content = wp_kses( $_POST['bulk_entry_postcontent'] );
+		$title = sanitize_title( $_POST['bulk_entry_posttitle'] );
 
 		$posttype = get_post_type_object( $type );
 
@@ -134,7 +120,7 @@ class BulkEntry {
 				$post_id = wp_insert_post( $my_post );
 				$permalink = get_permalink( $post_id );
 				$editlink = get_edit_post_link( $post_id );
-				$message = $title.'" created, <a href="'.$editlink.'">open in full editor</a> or <a href="'.$permalink.'">click here to view </a>';
+				$message = $title.'" created, <a href="'.esc_url( $editlink ).'">open in full editor</a> or <a href="'.esc_url( $permalink ).'">click here to view </a>';
 				$reply .= $this->message_card( '&nbsp;', $message );
 			}
 		}
@@ -192,7 +178,7 @@ class BulkEntry {
 		$custom_classes[] = 'bulk-entry-block';
 		$custom_classes = apply_filters( 'bulk_entry_start_block_classes', $custom_classes );
 		$classes = implode( ' ', $custom_classes );
-		$block = '<div class="'.$classes.'">';
+		$block = '<div class="'.esc_attr( $classes ).'">';
 		$block = apply_filters( 'bulk_entry_start_block_html', $block );
 		return $block;
 	}
@@ -274,7 +260,7 @@ class BulkEntry {
 			if ( $status->name == 'future' ){
 				continue;
 			}
-			$field .= '<option value="'.$status->name.'">'.$status->label.'</option>';
+			$field .= '<option value="'.esc_attr( $status->name ).'">'.esc_html( $status->label ).'</option>';
 		}
 		$field .= '</select>';
 		$field .= '</div>';
@@ -289,7 +275,7 @@ class BulkEntry {
 		$field .= '<select id="bulk-entry-add-post-type" name="bulk-entry-add-post-type" class="">';
 		foreach ( $post_types as $post_type ) {
 			if ( post_type_supports( $post_type->name, 'editor' ) && post_type_supports( $post_type->name, 'title' ) ) {
-				$field .= '<option value="'.$post_type->name.'">'.$post_type->labels->singular_name.'</option>';
+				$field .= '<option value="'.esc_attr( $post_type->name ).'">'.esc_html( $post_type->labels->singular_name ).'</option>';
 			}
 		}
 		$field .= '</select>';
@@ -313,7 +299,7 @@ class BulkEntry {
 		$toolbar .= '</div>';
 		$toolbar .= $this->end_right_block();
 		$ajax_nonce = wp_create_nonce( 'bulkentry-toolbar' );
-		$toolbar .= '<input id="bulk-entry-toolbar-nonce" type="hidden" name="bulk_entry_editor_nonce" value="'.$ajax_nonce.'" />';
+		$toolbar .= '<input id="bulk-entry-toolbar-nonce" type="hidden" name="bulk_entry_editor_nonce" value="'.esc_attr( $ajax_nonce ).'" />';
 		$toolbar .= '</form>';
 		$toolbar .= $this->end_block();
 		return $toolbar;
@@ -324,15 +310,15 @@ class BulkEntry {
 		$card = $this->start_block();
 		$card .= '<form method="post" action="">';
 		$card .= $this->start_left_block();
-		$poststatus = $_POST['bulk_entry_poststatus'];
-		$posttype = $_POST['bulk_entry_posttype'];
+		$poststatus = sanitize_title( $_POST['bulk_entry_poststatus'] );
+		$posttype = sanitize_title( $_POST['bulk_entry_posttype'] );
 
 		$type = get_post_type_object( $posttype );
 		$status = get_post_stati( array( 'name' => $poststatus ), 'objects' );
 		$status = $status[$poststatus];
 
-		$label = $status->label.' ';
-		$label .= $type->labels->singular_name;
+		$label = esc_html( $status->label ).' ';
+		$label .= esc_html( $type->labels->singular_name );
 		$label = apply_filters( 'bulk_entry_content_card_label', $label );
 
 		$card .= $label;
@@ -366,10 +352,10 @@ class BulkEntry {
 		$hidden_fields = array();
 
 		$ajax_nonce = wp_create_nonce( $editor_id );
-		$hidden_fields[] = '<input type="hidden" name="bulk_entry_editor_nonce" value="'.$ajax_nonce.'" />';
-		$hidden_fields[] = '<input type="hidden" name="bulk_entry_editor_id" value="'.$editor_id.'" />';
-		$hidden_fields[] = '<input type="hidden" name="bulk_entry_poststatus" value="'.$poststatus.'" />';
-		$hidden_fields[] = '<input type="hidden" name="bulk_entry_posttype" value="'.$posttype.'" />';
+		$hidden_fields[] = '<input type="hidden" name="bulk_entry_editor_nonce" value="'.esc_attr( $ajax_nonce ).'" />';
+		$hidden_fields[] = '<input type="hidden" name="bulk_entry_editor_id" value="'.esc_attr( $editor_id ).'" />';
+		$hidden_fields[] = '<input type="hidden" name="bulk_entry_poststatus" value="'.esc_attr( $poststatus ).'" />';
+		$hidden_fields[] = '<input type="hidden" name="bulk_entry_posttype" value="'.esc_attr( $posttype ).'" />';
 
 		$hidden_fields = apply_filters( 'bulk_entry_content_card_hidden_fields', $hidden_fields );
 		$hidden_fields = implode( '', $hidden_fields );

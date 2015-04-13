@@ -4,7 +4,7 @@ Donate link: http://www.tomjn.com
 Tags: admin, posts, bulk
 Requires at least: 3.4
 Tested up to: 4.2
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,6 +34,12 @@ Create large numbers of posts on a single screen in bulk. Features include:
 
 == Changelog ==
 
+April 13, 2015 - Version 1.2
+
+* Add escaping
+* Remove todo comments
+* Remove &$this reference
+ 
 April 9, 2013 - Version 1.1
 
 * Initial release
